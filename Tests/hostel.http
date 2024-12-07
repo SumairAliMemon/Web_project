@@ -1,0 +1,9 @@
+### Request to fetch all hostels
+let  port =  5500;
+### Request to fetch all hostels
+GET http://localhost:5500/api/hostels
+Content-Type: application/json
+
+### Request to search for hostels
+GET http://localhost:5500/api/hostels/search
+Content-Type: application/json
