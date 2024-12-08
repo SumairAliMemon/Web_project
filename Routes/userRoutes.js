@@ -1,5 +1,5 @@
 const express = require("express");
-const { updateProfile, bookHostel ,getBookingHistory , cancelBooking} = require("../Controller/userController");
+const { updateProfile, bookHostel ,getBookingHistory ,getBookingDetails,getUserDetails ,cancelBooking} = require("../Controller/userController");
 const router = express.Router();
 
 
@@ -15,5 +15,11 @@ router.get("/booking-history", getBookingHistory);
 // Route to cancel a booking (move to booking history)
 router.put("/cancel-booking",  cancelBooking);
 
+router.get("/",  getUserDetails);
+
+router.get("/booking/:id",  getBookingDetails);
+
+
+getBookingDetails
 
 module.exports = router;

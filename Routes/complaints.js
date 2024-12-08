@@ -4,12 +4,12 @@ const { postComplaint, deleteComplaint, getUserComplaints } = require("../Contro
 const router = express.Router();
 
 // POST: File a complaint
-router.post("/complaint", postComplaint);
+router.post("/", postComplaint);
 
 // DELETE: Delete a complaint
-router.delete("/complaint/:complaintId", deleteComplaint);
+router.delete("/:complaintId", deleteComplaint);
 
 // GET: Get all complaints filed by the user
-router.get("/complaints", getUserComplaints);
+router.get("/", getUserComplaints);
 
 module.exports = router;

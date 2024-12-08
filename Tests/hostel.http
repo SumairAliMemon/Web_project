@@ -1,9 +1,82 @@
-### Request to fetch all hostels
-let  port =  5500;
-### Request to fetch all hostels
-GET http://localhost:5500/api/hostels
+
+
+### Get User Announcements
+GET http://localhost:5500/api/complaints
+
+
+
+### Post a Complaint
+POST http://localhost:5500/api/complaints
 Content-Type: application/json
 
-### Request to search for hostels
-GET http://localhost:5500/api/hostels/search
+{
+  "subject": "Room Issue",
+  "description": "The room requires immediate repair."
+}
+
+### Delete a Complaint
+DELETE http://localhost:3000/api/complaints/REPLACE_WITH_COMPLAINT_ID
+Content-Type: application/json
+
+{
+  "userId": "REPLACE_WITH_HARDCODED_USER_ID"
+}
+
+### Get User Complaints
+GET http://localhost:3000/api/complaints/user
+Content-Type: application/json
+
+{
+  "userId": "REPLACE_WITH_HARDCODED_USER_ID"
+}
+
+### Get Hostels with Pagination, Search, and Filters
+GET http://localhost:5500/api/hostels?page=1&limit=5&search=hostel&location=city
+
+### Get Featured Hostels
+GET http://localhost:5500/api/hostels/id/6754842f450cb035ba052a63
+
+### Cancel Booking
+POST http://localhost:3000/api/bookings/cancel
+Content-Type: application/json
+
+{
+  "userId": "REPLACE_WITH_HARDCODED_USER_ID",
+  "hostelId": "64c97a3b12f87a1a8c5e24f1",
+  "roomId": "A101"
+}
+
+#asa 
+GET http://localhost:5500/api/hostels/6754842f450cb035ba052a63
+
+
+#asa 
+### POST Request to search for hostels
+POST http://localhost:5500/api/hostels/search
+Content-Type: application/json
+
+{
+  "searchTerm": "hostel in downtown",
+  "priceRange": { "min": 100, "max": 500 },
+  "amenities": ["WiFi", "AC"],
+  "rating": 4
+}
+
+
+
+#asa 
+GET http://localhost:5500/api/hostels/localhost:5500/api/hostels/featured/?page=1&limit=10
+
+# aasas
+
+### POST request to search for hostels based on search parameters
+POST http://localhost:5500/api/hostels/search
+Content-Type: application/json
+
+{
+  "searchTerm": "Sun",
+}
+
+### Get User Details
+GET http://localhost:5500/api/User/details
 Content-Type: application/json

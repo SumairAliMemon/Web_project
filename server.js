@@ -9,6 +9,8 @@ const cancelBookingManager = require('./Routes/cancelBooking.js');
 const review = require('./Routes/review.js');
 const announcements = require('./Routes/announcement.js');
 const complaints = require('./Routes/complaints.js');
+const cors = require('cors');
+
 
 // Initialize Express app
 const app = express();
@@ -58,6 +60,13 @@ const connectDB = async () => {
 connectDB();
 
 
+app.use(cors());
+
+// Or enable CORS for a specific origin
+app.use(cors({
+  origin: "http://localhost:5173" // Replace with your frontend URL
+}));
+
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/User', UserRoutes);
 app.use('/api/cancelBooking', cancelBookingManager);
@@ -78,5 +87,8 @@ app.listen(PORT, () => {
         JWT_SECRET: process.env.JWT_SECRET ? 'is set' : 'not set',
         MONGODB_URI: process.env.MONGODB_URI ? 'MongoDB URI is set' : 'MongoDB URI not set',
         PORT: PORT,
+
     });
+
+    console.log (process.env.MONGODB_URI );
 });

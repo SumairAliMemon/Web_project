@@ -1,10 +1,17 @@
 const express = require("express");
-const { getHostels  , getFeaturedHostels} = require("../Controller/hostelController");
+const {
+  getHostelById,
+  getFeaturedHostels,
+  searchFilterHostels,
+  getRandomHostels,
+} = require("../Controller/hostelController");
 
 const router = express.Router();
 
-// Route to fetch hostels with pagination, search, and filters
-router.get("/search", getHostels);
-router.get("/", getFeaturedHostels);
+// Define specific routes first to avoid conflict with dynamic ":id" route
+router.get("/featured", getRandomHostels); // Endpoint to fetch random hostels
+router.post("/search", searchFilterHostels); // Endpoint to search and filter hostels
+router.get("/", getFeaturedHostels); // Endpoint to fetch featured hostels with pagination
+router.get("/id/:id", getHostelById); // Endpoint to fetch a single hostel by ID
 
 module.exports = router;

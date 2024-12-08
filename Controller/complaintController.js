@@ -1,18 +1,27 @@
-
 const Complaint = require("../models/complaints");
 const User = require("../models/Users");
+const Hostel = require("../models/Hostel");  // Correct import for Hostel model
 
 // Post a complaint
 const postComplaint = async (req, res) => {
   try {
-    const { userId } = req.user;  // Assuming the user is authenticated
-    const { managerId, subject, description } = req.body;
+    const userId = '675481e1cbde32e998bcc830'; // Assuming the user is authenticated
+    const { subject, description } = req.body;
 
-    // Check if the manager exists
-    const manager = await User.findById(managerId);
-    if (!manager) {
-      return res.status(404).json({ message: "Manager not found." });
+    // Find the user's hostelId from their hostelDetails
+    const user = await User.findById(userId);
+    if (!user || !user.hostelDetails || !user.hostelDetails.hostelId) {
+      return res.status(404).json({ message: "User is not enrolled in any hostel." });
     }
+
+    // Fetch the hostel using the user's hostelId
+    const hostel = await Hostel.findById(user.hostelDetails.hostelId);
+    if (!hostel) {
+      return res.status(404).json({ message: "Hostel not found." });
+    }
+
+    // Get the managerId from the hostel details (assuming ownerId is the manager)
+    const managerId = hostel.ownerId; // Assuming the ownerId in hostel is the managerId
 
     // Create a new complaint
     const complaint = new Complaint({
@@ -36,7 +45,7 @@ const postComplaint = async (req, res) => {
 const deleteComplaint = async (req, res) => {
   try {
     const { complaintId } = req.params;  // Complaint ID to delete
-    const { userId } = req.user;  // Assuming the user is authenticated
+    const userId = '675481e1cbde32e998bcc830';  // Assuming the user is authenticated
 
     // Find the complaint by ID
     const complaint = await Complaint.findById(complaintId);
@@ -50,7 +59,7 @@ const deleteComplaint = async (req, res) => {
     }
 
     // Delete the complaint
-    await complaint.remove();
+    await Complaint.deleteOne({ _id: complaintId });
 
     return res.status(200).json({ message: "Complaint deleted successfully" });
   } catch (error) {
@@ -62,12 +71,12 @@ const deleteComplaint = async (req, res) => {
 // Get Complaints by the user
 const getUserComplaints = async (req, res) => {
   try {
-    const { userId } = req.user;  // Assuming the user is authenticated
+    const userId = '675481e1cbde32e998bcc830'; // Assuming the user is authenticated
 
-    // Find complaints filed by the user
-    const complaints = await Complaint.find({ userId }).populate("managerId", "name email");
-
-    if (complaints.length === 0) {
+    // Find complaints filed by the user using the correct query
+    const complaints = await Complaint.find({ userId });
+      console.log (complaints);
+    if (!complaints) {
       return res.status(404).json({ message: "No complaints found for the user." });
     }
 
@@ -77,6 +86,7 @@ const getUserComplaints = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 module.exports = {
   postComplaint,

@@ -1,79 +1,82 @@
-// controllers/hostelController.js
-const Hostel = require('../models/Hostel');
+const Hostel = require("../models/Hostel");
 
-// Get Hostels with Pagination, Search, and Filters
-const getHostels = async (req, res) => {
+// Get Hostel by ID
+const getHostelById = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, location, price, rating, amenities } = req.query;
+    const { id } = req.params;
 
-    // Build query object
-    const query = {};
+    const hostel = await Hostel.findById(id).populate({
+      path: "roomIds",
+      select: "pricePerMonth roomType roomNumber availability",
+      populate: {
+        path: "occupants",
+        select: "name email",
+      },
+    });
 
-    // Search by name or description
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+    if (!hostel) {
+      return res.status(404).json({ message: "Hostel not found" });
     }
-
-    // Filter by location
-    if (location) {
-      query.location = { $regex: location, $options: 'i' };
-    }
-
-    // Filter by rating
-    if (rating) {
-      query.rating = { $gte: Number(rating) }; // Minimum rating
-    }
-
-    // Filter by amenities
-    if (amenities) {
-      query.amenities = { $all: amenities.split(',') }; // All specified amenities must be present
-    }
-
-    // Execute query with pagination
-    const hostels = await Hostel.find(query)
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit))
-      .exec();
-
-    // Count total documents for pagination
-    const totalHostels = await Hostel.countDocuments(query);
 
     res.status(200).json({
-      hostels,
-      totalPages: Math.ceil(totalHostels / limit),
-      currentPage: Number(page),
-      totalHostels
+      id: hostel._id,
+      name: hostel.name,
+      location: hostel.location,
+      description: hostel.description,
+      amenities: hostel.amenities,
+      rating: hostel.rating,
+      rooms: hostel.roomIds,
+      images: hostel.images,
+      totalRooms: hostel.roomIds.length,
+      isApproved: hostel.isApproved,
+      createdAt: hostel.createdAt,
+      updatedAt: hostel.updatedAt,
     });
   } catch (error) {
-    console.error('Error fetching hostels:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error fetching hostel:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-
+// Get Featured Hostels
 const getFeaturedHostels = async (req, res) => {
-  try {
-    // Get the top 5 most reviewed hostels
-    const mostReviewed = await Hostel.aggregate([
-      {
-        $project: {
-          name: 1,
-          reviewsCount: { $size: "$reviews" }, // Count the number of reviews
-        },
-      },
-      { $sort: { reviewsCount: -1 } }, // Sort by the number of reviews in descending order
-      { $limit: 5 }, // Limit to top 5 hostels
-    ]);
+  const { page = 1, limit = 10 } = req.query;
 
-    // Get the top 5 most searched hostels
-    const mostSearched = await Hostel.find({}).sort({ searchCount: -1 }).limit(5); // Sort by search count
+  try {
+    const skip = (page - 1) * limit;
+
+    const hostels = await Hostel.find({})
+      .sort({ searchCount: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate({
+        path: "roomIds",
+        select: "pricePerMonth roomType roomNumber availability",
+        populate: {
+          path: "occupants",
+          select: "name email",
+        },
+      });
+
+    const total = await Hostel.countDocuments();
 
     res.status(200).json({
-      mostReviewed,
-      mostSearched,
+      hostels: hostels.map((hostel) => ({
+        id: hostel._id,
+        name: hostel.name,
+        location: hostel.location,
+        description: hostel.description,
+        amenities: hostel.amenities,
+        rating: hostel.rating,
+        rooms: hostel.roomIds,
+        totalRooms: hostel.roomIds.length,
+        isApproved: hostel.isApproved,
+        createdAt: hostel.createdAt,
+        updatedAt: hostel.updatedAt,
+      })),
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.error("Error fetching featured hostels:", error);
@@ -81,4 +84,105 @@ const getFeaturedHostels = async (req, res) => {
   }
 };
 
-module.exports = { getHostels , getFeaturedHostels };
+// Get Random Hostels
+const getRandomHostels = async (req, res) => {
+  const { limit = 8 } = req.query;
+
+  try {
+    const hostels = await Hostel.aggregate([
+      { $sample: { size: parseInt(limit, 10) } },
+    ]);
+
+    const total = await Hostel.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      hostels,
+      totalHostels: total,
+    });
+  } catch (error) {
+    console.error("Error fetching random hostels:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching random hostels",
+      error: error.message,
+    });
+  }
+};
+
+
+const searchFilterHostels = async (req, res) => {
+  const { page = 1, limit = 8 } = req.query;
+  const { searchTerm, priceRange, amenities, rating } = req.body;
+
+  try {
+    const skip = (page - 1) * limit;
+
+    // Build query object
+    const query = {};
+
+    // Search Term Handling for Partial Match on `name` and `location`
+    if (searchTerm) {
+      query.$or = [
+        { name: { $regex: searchTerm, $options: "i" } }, // Case-insensitive partial match on `name`
+        { location: { $regex: searchTerm, $options: "i" } }, // Case-insensitive partial match on `location`
+      ];
+    }
+
+    // Price Range Filtering
+    if (priceRange?.min != null && priceRange?.max != null) {
+      query["roomIds.pricePerMonth"] = {
+        $gte: priceRange.min,
+        $lte: priceRange.max,
+      };
+    }
+
+    // Amenities Filtering
+    if (Array.isArray(amenities) && amenities.length > 0) {
+      query.amenities = { $all: amenities };
+    }
+
+    // Rating Filtering
+    if (rating != null) {
+      query.rating = { $gte: rating };
+    }
+
+    // Fetch matching hostels with pagination
+    const hostels = await Hostel.find(query)
+      .populate({
+        path: "roomIds",
+        select: "pricePerMonth roomType roomNumber availability",
+      })
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ rating: -1 });
+
+    // Count total documents matching the query
+    const total = await Hostel.countDocuments(query);
+
+    // Return response
+    res.status(200).json({
+      success: true,
+      hostels,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalHostels: total,
+    });
+  } catch (error) {
+    console.error("Error searching hostels:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error searching hostels",
+      error: error.message,
+    });
+  }
+};
+
+
+
+module.exports = {
+  getHostelById,
+  getFeaturedHostels,
+  getRandomHostels,
+  searchFilterHostels,
+};

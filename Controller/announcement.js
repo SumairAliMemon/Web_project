@@ -5,8 +5,9 @@ const Hostel = require("../models/Hostel");
 
 const getUserAnnouncements = async (req, res) => {
   try {
-    const { userId } = req.user;  // Assuming the user is authenticated and their userId is available
-
+   // const {userId} = req.user?.userId || req.qurey.user 
+    // Assuming the user is authenticated and their userId is available
+const userId= '675481e1cbde32e998bcc830';
     // Ensure the userId is valid (check if the user exists in the system)
     const user = await User.findById(userId);
     if (!user) {
@@ -15,7 +16,9 @@ const getUserAnnouncements = async (req, res) => {
 
     // Check if the user has hostel details
     const userHostelDetails = user.hostelDetails;
-    if (!userHostelDetails || !userHostelDetails.hostelId) {
+    console.log(userHostelDetails);
+    if (!userHostelDetails.hostelId) {
+     
       return res.status(400).json({ message: "User does not belong to any hostel." });
     }
 

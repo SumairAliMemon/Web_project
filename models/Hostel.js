@@ -17,3 +17,4 @@ const HostelSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Hostel", HostelSchema);
+HostelSchema.index({ name: "text", location: "text" });
