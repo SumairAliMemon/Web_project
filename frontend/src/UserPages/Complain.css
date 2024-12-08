@@ -1,0 +1,83 @@
+.complain-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.complaint-form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.complaint-form input,
+.complaint-form textarea {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.complaint-form button {
+  padding: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.complaint-form button:hover {
+  background-color: #2980b9;
+}
+
+.complaints-list {
+  margin-top: 20px;
+}
+
+.complaint-card {
+  background: #f9f9f9;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.complaint-card h2 {
+  margin: 0 0 10px;
+  color: #3498db;
+}
+
+.complaint-card p {
+  margin: 5px 0;
+}
+
+.complaint-status {
+  font-weight: bold;
+  color: #e67e22;
+}
+
+.complaint-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.complaint-meta button {
+  background: transparent;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+}
+
+.complaint-meta button:hover {
+  text-decoration: underline;
+} 

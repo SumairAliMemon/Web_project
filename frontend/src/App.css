@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+/* active-link class */
+.nav-link.active-link {
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+  color: #ff00ff;
+}
