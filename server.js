@@ -65,7 +65,7 @@ app.use(cors());
 
 // Or enable CORS for a specific origin
 app.use(cors({
-  origin: "http://localhost:5173" // Replace with your frontend URL
+  origin: "http://localhost:5174" // Replace with your frontend URL
 }));
 
 app.use('/api/hostels', hostelRoutes);

@@ -45,7 +45,7 @@ const postComplaint = async (req, res) => {
 const deleteComplaint = async (req, res) => {
   try {
     const { complaintId } = req.params;  // Complaint ID to delete
-    const userId = '675481e1cbde32e998bcc830';  // Assuming the user is authenticated
+    const userId = '675481e1cbde32e998bcc830' ;  // Assuming the user is authenticated
 
     // Find the complaint by ID
     const complaint = await Complaint.findById(complaintId);
@@ -71,12 +71,11 @@ const deleteComplaint = async (req, res) => {
 // Get Complaints by the user
 const getUserComplaints = async (req, res) => {
   try {
-    const userId = '675481e1cbde32e998bcc830'; // Assuming the user is authenticated
+    const userId = '675481e1cbde32e998bcc830';  // Assuming the user is authenticated
 
     // Find complaints filed by the user using the correct query
     const complaints = await Complaint.find({ userId });
-      console.log (complaints);
-    if (!complaints) {
+    if (!complaints || complaints.length === 0) {
       return res.status(404).json({ message: "No complaints found for the user." });
     }
 
@@ -86,7 +85,6 @@ const getUserComplaints = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 module.exports = {
   postComplaint,
