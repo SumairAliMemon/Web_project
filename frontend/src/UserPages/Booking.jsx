@@ -58,6 +58,7 @@ const Bookings = () => {
   return (
     <>
       <NavBar />
+
       <div className="booking-container">
         <h2>Current Booking</h2>
         {currentBooking ? (

@@ -16,7 +16,7 @@ const Announcements = () => {
           setAnnouncements(response.data.announcements);
         }
       } catch (err) {
-        setError("Failed to fetch announcements.");
+        setError(response.data.announcements);
       } finally {
         setLoading(false);
       }

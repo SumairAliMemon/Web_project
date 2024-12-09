@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import axios from "axios"; // import axios for API requests
 import React, { useEffect, useState } from "react";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import Announcements from "./UserPages/Announcements";
@@ -15,6 +16,7 @@ const queryClient = new QueryClient();
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,33 +26,45 @@ const App = () => {
         if (decodedToken.exp * 1000 > Date.now()) {
           setIsAuthenticated(true);
           setUserRole(decodedToken.role);
+          axios.defaults.headers['Authorization'] = `Bearer ${token}`;
         } else {
           localStorage.removeItem("token");
           setIsAuthenticated(false);
           setUserRole(null);
         }
       } catch (error) {
-        localStorage.removeItem("token");
         setIsAuthenticated(false);
         setUserRole(null);
+        localStorage.removeItem("token");
       }
     }
+    setIsLoading(false);
   }, []);
 
-  const createRoutes = () =>
-    createBrowserRouter([
-      {
-        path: "/",
-        element: isAuthenticated ? (
-          <Navigate to="/customer-dashboard" replace />
-        ) : (
-          <Navigate to="/login" replace />
-        ),
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
+  const handleLoginSuccess = (token, user) => {
+    setIsAuthenticated(true);
+    setUserRole(user.role); // Set user role after successful login
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    axios.defaults.headers['Authorization'] = `Bearer ${token}`;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    setUserRole(null);
+    axios.defaults.headers['Authorization'] = "";
+  };
+
+  const createRoutes = () => createBrowserRouter([
+    {
+      path: "/",
+      element: isAuthenticated ? (userRole === "customer" ? <Navigate to="/customer-dashboard" /> : <Navigate to="/announcements" />) : <Navigate to="/login" />,
+    },
+    {
+      path: "/login",
+      element: isAuthenticated ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />,
+    },
       {
         path: "/signup",
         element: <Register />,
@@ -58,7 +72,7 @@ const App = () => {
       {
         path: "/customer-dashboard",
         element: userRole === "customer" && isAuthenticated ? (
-          <CustomerDashboard />
+          <CustomerDashboard onLogout={handleLogout} />
         ) : (
           <Navigate to="/login" replace />
         ),
@@ -82,7 +96,7 @@ const App = () => {
       {
         path: "/profile",
         element: ["customer", "admin"].includes(userRole) && isAuthenticated ? (
-          <Profile />
+          <Profile onLogout={handleLogout} />
         ) : (
           <Navigate to="/login" replace />
         ),
@@ -118,6 +132,11 @@ const App = () => {
     ]);
 
   const router = createRoutes();
+
+  if (isLoading) {
+    // Add a loading spinner or placeholder while verifying the token
+    return <div>Loading...</div>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
