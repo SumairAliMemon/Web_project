@@ -6,13 +6,21 @@ const User = require("../models/Users");
 // Post a review
 const postReview = async (req, res) => {
   try {
-    const { userId } = req.user;  // Assuming user is authenticated
-    const { hostelId, rating, reviewText } = req.body;
+    const userId = '675481e1cbde32e998bcc830'; // Assuming `req.user` contains the authenticated user's ID
+    const { rating, reviewText } = req.body;
 
     // Validate rating range (1-5)
     if (rating < 1 || rating > 5) {
       return res.status(400).json({ message: "Rating should be between 1 and 5." });
     }
+
+    // Find user to get the hostelId
+    const user = await User.findById(userId).select("hostelDetails.hostelId");
+    if (!user || !user.hostelDetails || !user.hostelDetails.hostelId) {
+      return res.status(404).json({ message: "User is not enrolled in any hostel." });
+    }
+
+    const hostelId = user.hostelDetails.hostelId;
 
     // Check if the hostel exists
     const hostel = await Hostel.findById(hostelId);
@@ -46,6 +54,7 @@ const postReview = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // Delete a review
 const deleteReview = async (req, res) => {

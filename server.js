@@ -5,6 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const hostelRoutes = require('./Routes/hostelRoutes');
 const UserRoutes = require('./Routes/userRoutes');
+const profileRoutes = require('./Routes/profile');
 const cancelBookingManager = require('./Routes/cancelBooking.js');
 const review = require('./Routes/review.js');
 const announcements = require('./Routes/announcement.js');
@@ -68,13 +69,12 @@ app.use(cors({
 }));
 
 app.use('/api/hostels', hostelRoutes);
-app.use('/api/User', UserRoutes);
+app.use('/api/User', profileRoutes);
 app.use('/api/cancelBooking', cancelBookingManager);
 app.use('/api/review', review);
 app.use('/api/announcements', announcements);
-app.use('/api/review', review);
 app.use('/api/complaints', complaints);
-
+app.use('/api', UserRoutes);
 
 
 
