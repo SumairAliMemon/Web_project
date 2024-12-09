@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Filter, Search } from 'lucide-react';
+import { Filter, MapPin, Search } from 'lucide-react';
 import React, { useEffect, useState } from "react";
 import HostelCard from "../UserComponents/HostelCard";
 import NavBar from "../UserComponents/NavBar";
@@ -113,11 +113,15 @@ const CustomerDashboard = () => {
   };
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prevFilters => ({
-      ...prevFilters,
-      [filterType]: value
-    }));
-    setFilteredHostels(applyFilters(hostels));
+    setFilters(prevFilters => {
+      const newFilters = {
+        ...prevFilters,
+        [filterType]: value
+      };
+      // Update filtered hostels whenever a filter is changed
+      setFilteredHostels(applyFilters(hostels));
+      return newFilters;
+    });
   };
 
   const clearFilters = () => {
@@ -128,6 +132,37 @@ const CustomerDashboard = () => {
       rating: ''
     });
     loadRandomHostels();
+  };
+
+  const handleNearMe = async () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        // Use a reverse geocoding API to get the city name
+        try {
+          const response = await axios.get(`https://api.bigdatacloud.net/data/reverse-geocode-client`, {
+            params: {
+              latitude,
+              longitude,
+              localityLanguage: 'en'
+            }
+          });
+
+          const cityName = response.data.city || response.data.locality || '';
+          setSearchTerm(cityName); // Set the city name in the search input
+          await searchHostels(); // Trigger the search automatically
+        } catch (error) {
+          console.error("Error fetching city name:", error);
+          setError("Failed to get your location.");
+        }
+      }, (error) => {
+        console.error("Geolocation error:", error);
+        setError("Unable to retrieve your location.");
+      });
+    } else {
+      setError("Geolocation is not supported by this browser.");
+    }
   };
 
   return (
@@ -145,6 +180,15 @@ const CustomerDashboard = () => {
               className="search-input"
             />
           </div>
+
+          <button 
+            type="button"
+            className="near-me-button"
+            onClick={handleNearMe}
+            title="Find Hostels Near Me"
+          >
+            <MapPin size={24} />
+          </button>
 
           <button 
             type="button"
@@ -188,7 +232,12 @@ const CustomerDashboard = () => {
                     <input
                       type="checkbox"
                       checked={filters.amenities.includes(amenity)}
-                      onChange={(e) => handleFilterChange('amenities', e.target.checked ? [...filters.amenities, amenity] : filters.amenities.filter(a => a !== amenity))}
+                      onChange={(e) => {
+                        const newAmenities = e.target.checked 
+                          ? [...filters.amenities, amenity] 
+                          : filters.amenities.filter(a => a !== amenity);
+                        handleFilterChange('amenities', newAmenities);
+                      }}
                     />
                     {amenity}
                   </label>

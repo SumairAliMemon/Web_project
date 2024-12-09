@@ -22,7 +22,6 @@ const HostelCard = ({ hostel }) => {
     }
   };
 
-  // Since roomIds is now an array of strings, we'll need to handle that differently
   const handleViewDetails = () => {
     navigate(`/hostel/${hostel._id}`);
   };
@@ -38,10 +37,7 @@ const HostelCard = ({ hostel }) => {
       {/* Image Section */}
       <div className="card-image-container">
         <img 
-          src={hostel.images?.[0] 
-            ? `http://localhost:5000/uploads/${hostel.images[0]}`
-            : '/placeholder-hostel.jpg'
-          }
+          src={hostel.images?.[0] || '/placeholder-hostel.jpg'}
           alt={hostel.name}
           className="card-image"
           onError={(e) => {

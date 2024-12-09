@@ -1,103 +1,106 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { useState } from "react";
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"; // Import the NavBar
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import Announcements from "./UserPages/Announcements";
 import Bookings from "./UserPages/Booking";
 import Complain from "./UserPages/Complain";
 import CustomerDashboard from "./UserPages/CustomerDashboard";
 import HostelDetailPage from "./UserPages/HostelDetailPage";
 import Profile from "./UserPages/Profile";
+import Login from "./UserPages/login";
+import Register from "./UserPages/register";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
+
 const App = () => {
-  // Hardcode the user role as 'customer'
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Sample authentication state (should be true for testing)
-  const [userRole , setuserRole] =useState ( "customer"); // Hardcoded role for testing
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
-  const createRoutes = () => {
-    return createBrowserRouter([
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(window.atob(token.split(".")[1]));
+        if (decodedToken.exp * 1000 > Date.now()) {
+          setIsAuthenticated(true);
+          setUserRole(decodedToken.role);
+        } else {
+          localStorage.removeItem("token");
+          setIsAuthenticated(false);
+          setUserRole(null);
+        }
+      } catch (error) {
+        localStorage.removeItem("token");
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    }
+  }, []);
+
+  const createRoutes = () =>
+    createBrowserRouter([
       {
         path: "/",
-        element: <Navigate to="/customer-dashboard" replace />, // Default redirect to Customer Dashboard
+        element: isAuthenticated ? (
+          <Navigate to="/customer-dashboard" replace />
+        ) : (
+          <Navigate to="/login" replace />
+        ),
       },
       {
         path: "/login",
-        element: <div>Login Page</div>,
+        element: <Login />,
       },
       {
         path: "/signup",
-        element: <div>Signup Page</div>,
+        element: <Register />,
       },
       {
         path: "/customer-dashboard",
         element: userRole === "customer" && isAuthenticated ? (
-          <>
-
-<QueryClientProvider client={queryClient}>
-      {/* Your app components */}
-      <CustomerDashboard />
-    </QueryClientProvider>
-       
-       
-          </>
+          <CustomerDashboard />
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
       {
         path: "/announcements",
-        element: (userRole === "customer" || userRole === "admin") && isAuthenticated ? (
-          <>
-
-            <Announcements />
-          </>
+        element: ["customer", "admin"].includes(userRole) && isAuthenticated ? (
+          <Announcements />
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
       {
         path: "/complain",
         element: userRole === "customer" && isAuthenticated ? (
-          <>
-
-            <Complain />
-          </>
+          <Complain />
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
       {
         path: "/profile",
-        element: (userRole === "customer" || userRole === "admin") && isAuthenticated ? (
-          <>
-        
-            <Profile />
-          </>
+        element: ["customer", "admin"].includes(userRole) && isAuthenticated ? (
+          <Profile />
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
       {
         path: "/bookings",
         element: userRole === "customer" && isAuthenticated ? (
-          <>
-    
-            <Bookings />
-          </>
+          <Bookings />
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
-
       {
         path: "/hello",
         element: userRole === "manager" && isAuthenticated ? (
-          <>
-    
-            <> Welcome to Manager</>
-          </>
+          <div>Welcome to Manager</div>
         ) : (
-          <Navigate to="/login" replace /> // Redirect to login if not authenticated or wrong role
+          <Navigate to="/login" replace />
         ),
       },
       {
@@ -109,15 +112,18 @@ const App = () => {
         ),
       },
       {
-        path: "*", // Catch-all for undefined paths
+        path: "*",
         element: <div>404 - Page Not Found</div>,
       },
-      
     ]);
-  };
 
   const router = createRoutes();
-  return <RouterProvider router={router} />;
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 };
 
 export default App;

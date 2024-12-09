@@ -126,7 +126,7 @@ const HostelDetailPage = () => {
             {hostel.images?.map((image, index) => (
               <img
                 key={index}
-                src={`http://localhost:5500/uploads/${image}`}
+                src={image}
                 alt={`${hostel.name} - ${index + 1}`}
                 className={`gallery-image ${index === currentImageIndex ? 'active' : ''}`}
                 onError={(e) => {
